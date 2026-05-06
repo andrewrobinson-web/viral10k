@@ -1,0 +1,44 @@
+name: Viral10K Weekly Scan
+
+on:
+  schedule:
+    - cron: '0 15 * * 4'   # Every Thursday at 9:00 AM CST (15:00 UTC)
+  workflow_dispatch:         # Allow manual trigger from GitHub UI
+
+jobs:
+  scan:
+    name: Run Viral Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 60      # Kill the job if it hangs past 1 hour
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run viral scan
+        env:
+          AGORAPULSE_API_KEY: ${{ secrets.AGORAPULSE_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: python viral10k14.py --scan
+
+      - name: Upload CSVs as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results-${{ github.run_id }}
+          path: |
+            viral_videos_*.csv
+            all_videos_*.csv
+            errors_*.csv
+          retention-days: 30
+          if-no-files-found: ignore

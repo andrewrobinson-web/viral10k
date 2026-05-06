@@ -1,0 +1,25 @@
+name: Viral Content Scan
+
+on:
+  workflow_dispatch:        # ← the button (Actions tab → Run workflow)
+  schedule:
+    - cron: '0 14 * * 1'   # every Monday 9am ET (UTC-5 standard / UTC-4 daylight)
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run viral scan
+        run: python3 viral10k14.py --scan
+        env:
+          AGORAPULSE_API_KEY: ${{ secrets.AGORAPULSE_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
