@@ -1,0 +1,7 @@
+.env
+*.csv
+*.html
+*.log
+__pycache__/
+*.pyc
+.gstack/
